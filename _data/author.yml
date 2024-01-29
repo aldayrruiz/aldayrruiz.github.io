@@ -1,0 +1,15 @@
+name: Aldayr Ruiz
+dp: /assets/icons/profile.png
+description: "
+  <p>
+  Welcome to my Hack The Box walkthroughs space. Here, I share strategies and solutions used on challenging machines. This site is a practical resource for exploring the realm of ethical hacking.
+  </p>
+"
+email: aldayr.dev@gmail.com
+contact:
+  - title: linkedin
+    url: https://www.linkedin.com/in/aldayrruiz
+  - title: github
+    url: https://github.com/aldayrruiz
+  - title: email
+    url: mailto:aldayr.dev@gmail.com

