@@ -1,3 +1,11 @@
+---
+layout: post
+title:  "Zipping Machine (Medium)"
+date:   2024-01-29 17:04:54 +0100
+categories: ["NFS", "SQL Injection", "Reverse Engineering"]
+---
+
+
 ### Services Enumeration
 The first step is to enumerate the services and gather information about them. To do this, we execute the following command:
 
