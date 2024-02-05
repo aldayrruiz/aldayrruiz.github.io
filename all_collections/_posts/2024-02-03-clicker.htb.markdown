@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "Zipping Machine (Medium)"
-date:   2024-01-29 17:04:54 +0100
+title:  "Clicker Machine (Medium)"
+date:   2024-02-03 17:04:54 +0100
 categories: ["NFS", "SQL Injection", "Reverse Engineering"]
 ---
 
