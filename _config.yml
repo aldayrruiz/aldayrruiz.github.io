@@ -4,7 +4,7 @@ markdown: kramdown
 # for atom feed
 author:
   name: Aldayr Ruiz
-  email: aldayr.dev@gmail.com
+  email: aldayrruiz@proton.me
 
 plugins:
   - jemoji
