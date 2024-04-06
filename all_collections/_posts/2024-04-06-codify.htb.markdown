@@ -11,7 +11,7 @@ First run a nmap scan to show the services available on the target.
 
 ![Nmap scan](/assets/machines/codify.htb/images/1_nmap_scan.png)
 
-*Note: En el output aunque aparezca el puerto 3000 abierto, era otro hacker entusiasta que abriría ese puerto.*
+*Note: En el output aparece el puerto 3000 abierto, era otra persona que tenía acceso a la máquina y abrió ese puerto.*
 
 The web application use the vm2 software to allow users to execute Nodejs code in the server.
 
