@@ -5,10 +5,19 @@ header {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+  background: transparent;
 }
 header .site-title {
-  font-size: 4rem;
+  font-size: 3rem;
   font-weight: bolder;
   line-height: 110%;
-  color: var(--white-1);
+  color: var(--accent-blue);
+  letter-spacing: -2px;
+  text-shadow: 0 2px 12px #22345c44;
+  font-family: "JetBrains Mono", monospace;
+}
+@media screen and (max-width: 750px) {
+  header .site-title {
+    font-size: 2rem;
+  }
 }
