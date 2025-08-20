@@ -12,24 +12,11 @@ plugins:
   - jekyll-sitemap
   - jekyll-feed
 
-# Usar la carpeta all_collections como directorio de colecciones
-collections_dir: all_collections
-
-collections:
-  # Trata all_collections/_posts como una colección publicable (no requiere YYYY-MM-DD en el nombre)
-  posts:
-    output: true
-    permalink: /posts/:title/
-  # Ejemplo de otra colección que puedas querer
-  writeups:
-    output: true
-
-
 defaults:
   - scope:
       path: "_posts"
     values:
       layout: "post"
-      permalink: /posts/:title/
+      permalink: /:categories/:title
 
 exclude: ["*.py", "sitemap.xml", "feed.xml", "LICENSE", "README.md"]

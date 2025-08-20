@@ -1,0 +1,23 @@
+header {
+  padding: 2rem 0 4rem 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  background: transparent;
+}
+header .site-title {
+  font-size: 3rem;
+  font-weight: bolder;
+  line-height: 110%;
+  color: var(--accent-blue);
+  letter-spacing: -2px;
+  text-shadow: 0 2px 12px #22345c44;
+  font-family: "JetBrains Mono", monospace;
+}
+@media screen and (max-width: 750px) {
+  header .site-title {
+    font-size: 2rem;
+  }
+}

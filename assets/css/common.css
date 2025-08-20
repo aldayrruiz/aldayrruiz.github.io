@@ -1,62 +1,50 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
+
 :root {
-  --gray-1: #3f3f3f;
-  --gray-2: #32353a;
-  --gray-3: #25282c;
-  --gray-4: #151618;
-  --gray-5: #151618;
-  --gray-6: #111111;
-  --white-1: #eeeeee;
-  --white-2: #a9abb3;
+  --bg-main: #0b0c10;
+  --bg-card: #181a20;
+  --bg-code: #181a20;
+  --border-card: #23263a;
+  --accent-blue: #60a5fa;
+  --accent-blue-2: #2563eb;
+  --badge-bg: #23263a;
+  --badge-border: #2563eb;
+  --badge-hover: #60a5fa;
+  --text-main: #e6eaf3;
+  --text-muted: #a9abb3;
+  --shadow: 0 2px 16px rgba(16, 24, 40, 0.18);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --gray-1: #3f3f3f;
-    --gray-2: #32353a;
-    --gray-2_5: #242526;
-    --gray-3: #e8e8e8;
-    --gray-4: #eeeeee;
-    --gray-5: #f5f5f5;
-    --gray-6: #a9abb3;
-    --white-1: #242526;
-    --white-2: #242526;
-  }
+html,
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: "JetBrains Mono", "Segoe UI", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --gray-1: #3f3f3f;
-    --gray-2: #32353a;
-    --gray-3: #25282c;
-    --gray-4: #151618;
-    --gray-5: #151618;
-    --gray-6: #111111;
-    --white-1: #eeeeee;
-    --white-2: #a9abb3;
-  }
+main {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 16px;
 }
 
-[data-theme="light"] {
-  --gray-1: #3f3f3f;
-  --gray-2: #32353a;
-  --gray-2_5: #242526;
-  --gray-3: #e8e8e8;
-  --gray-4: #eeeeee;
-  --gray-5: #f5f5f5;
-  --gray-6: #a9abb3;
-  --white-1: #242526;
-  --white-2: #242526;
+a {
+  color: var(--accent-blue);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover {
+  color: var(--badge-hover);
 }
 
-[data-theme="dark"] {
-  --gray-1: #3f3f3f;
-  --gray-2: #32353a;
-  --gray-3: #25282c;
-  --gray-4: #151618;
-  --gray-5: #151618;
-  --gray-6: #111111;
-  --white-1: #eeeeee;
-  --white-2: #a9abb3;
+hr {
+  border-top: 2px dashed var(--text-muted);
+  margin-bottom: 1.75rem;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
 }
 
 #category-modal-bg {
@@ -125,12 +113,4 @@
 
 .modal-article:hover {
   background: var(--gray-4);
-}
-
-hr {
-  border-top: 2px dashed var(--white-2) !important;
-  border-bottom: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  margin-bottom: 1.75rem !important;
 }
