@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-  {% include head.html %}
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{site.title}}</title>
+    <link rel="stylesheet" href="/assets/css/header.css" />
+    <link rel="stylesheet" href="/assets/css/common.css" />
+    <link rel="stylesheet" href="/assets/css/post.css" />
+    <link rel="stylesheet" href="/assets/css/syntax.css" />
+    
+
+    <!-- scripts -->
+    <script defer src="/assets/js/lbox.js"></script>
+  </head>
   <body>
     <main>
       {% include header.html %}
@@ -17,6 +30,5 @@
       </section>
       {% include footer.html %}
     </main>
-    {% include category-modal.html%}
   </body>
 </html>

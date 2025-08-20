@@ -1,0 +1,14 @@
+header {
+  padding: 2rem 0 4rem 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+header .site-title {
+  font-size: 4rem;
+  font-weight: bolder;
+  line-height: 110%;
+  color: var(--white-1);
+}

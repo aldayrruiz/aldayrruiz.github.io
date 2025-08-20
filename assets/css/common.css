@@ -9,6 +9,20 @@
   --white-2: #a9abb3;
 }
 
+main {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+body {
+  background: #101828;
+  font-family: "JetBrains Mono", monospace;
+  margin: 0;
+  padding: 0;
+  color: #e6eaf3;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     --gray-1: #3f3f3f;
