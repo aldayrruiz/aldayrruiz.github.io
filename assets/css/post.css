@@ -84,7 +84,7 @@ header {
   font-family: "JetBrains Mono", monospace;
 }
 .content p {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   color: var(--text-main);
   margin: 0 0 1.75rem 0;
   padding: 0;

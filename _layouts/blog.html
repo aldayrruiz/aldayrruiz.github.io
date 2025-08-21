@@ -5,6 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{site.title}}</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="/assets/icons/profile.png"
+      sizes="32x32"
+    />
     <link rel="stylesheet" href="/assets/css/header.css" />
     <link rel="stylesheet" href="/assets/css/common.css" />
     <link rel="stylesheet" href="/assets/css/blog.css" />
@@ -13,9 +19,68 @@
   <body>
     <main>
       {% include header.html %} {% include bio.html %}
-      <section class="articles">
+      <section class="filters-section">
+        <input type="text" id="search-input" placeholder="Buscar máquina..." />
+        <div class="filters">
+          <div class="filter-group">
+            <div class="custom-multiselect" id="os-multiselect">
+              <button type="button" class="multiselect-btn" id="os-btn">
+                OS
+              </button>
+              <div class="multiselect-dropdown" id="os-dropdown">
+                <label
+                  ><input type="checkbox" class="filter-os" value="Linux" />
+                  Linux</label
+                >
+                <label
+                  ><input type="checkbox" class="filter-os" value="Windows" />
+                  Windows</label
+                >
+              </div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="custom-multiselect" id="level-multiselect">
+              <button type="button" class="multiselect-btn" id="level-btn">
+                Dificultad
+              </button>
+              <div class="multiselect-dropdown" id="level-dropdown">
+                <label
+                  ><input type="checkbox" class="filter-level" value="Easy" />
+                  Easy</label
+                >
+                <label
+                  ><input type="checkbox" class="filter-level" value="Medium" />
+                  Medium</label
+                >
+                <label
+                  ><input type="checkbox" class="filter-level" value="Hard" />
+                  Hard</label
+                >
+                <label
+                  ><input type="checkbox" class="filter-level" value="Insane" />
+                  Insane</label
+                >
+              </div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span>Por página:</span>
+            <select id="per-page-select">
+              <option value="20">20</option>
+              <option value="40">40</option>
+            </select>
+          </div>
+        </div>
+      </section>
+      <section class="articles" id="articles-list">
         {% for post in site.posts %}
-        <div class="card">
+        <div
+          class="card"
+          data-title="{{ post.title | escape }}"
+          data-os="{{ post.os | default: '' }}"
+          data-level="{{ post.level | default: '' }}"
+        >
           <img
             class="card-img"
             src="{{ post.image }}"
@@ -25,18 +90,36 @@
             <h2 class="article-title">
               <a href="{{ site.baseurl }}{{post.url}}">{{post.title}}</a>
             </h2>
-            <div class="categories">
-              {% for tag in post.tags %}
-              <a href="#!" data-base-url="{{site.baseurl}}" class="category"
-                >{{tag}}</a
-              >
-              {% endfor %}
+            <div class="meta">
+              {% if post.os == "Linux" %}
+              <img
+                src="/assets/icons/linux.png"
+                alt="Linux"
+                title="Linux"
+                class="os-icon"
+                style="width: 24px; height: 24px; vertical-align: middle"
+              />
+              {% elsif post.os == "Windows" %}
+              <img
+                src="/assets/icons/windows.png"
+                alt="Windows"
+                title="Windows"
+                class="os-icon"
+                style="width: 24px; height: 24px; vertical-align: middle"
+              />
+              {% endif %}
             </div>
           </div>
         </div>
         {% endfor %}
       </section>
+      <div class="pagination-controls">
+        <button id="prev-page">Anterior</button>
+        <span id="pagination-info"></span>
+        <button id="next-page">Siguiente</button>
+      </div>
       {% include footer.html %}
     </main>
+    <script src="/assets/js/blog-filters.js"></script>
   </body>
 </html>

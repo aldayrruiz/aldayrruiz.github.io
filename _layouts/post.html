@@ -9,8 +9,12 @@
     <link rel="stylesheet" href="/assets/css/common.css" />
     <link rel="stylesheet" href="/assets/css/post.css" />
     <link rel="stylesheet" href="/assets/css/syntax.css" />
-    
-
+    <link
+      rel="icon"
+      type="image/png"
+      href="/assets/icons/profile.png"
+      sizes="32x32"
+    />
     <!-- scripts -->
     <script defer src="/assets/js/lbox.js"></script>
   </head>
@@ -21,9 +25,8 @@
         <div class="article-header">
           <h2 class="article-title">{{page.title}}</h2>
           <div class="categories">
-            {% for c in page.categories %}
-            <a href="#!" class="category">{{c}}</a>
-            {% endfor %}
+            <a href="#!" class="category">{{page.os}}</a>
+            <a href="#!" class="category">{{page.level}}</a>
           </div>
         </div>
         <div class="content">{{content}}</div>
