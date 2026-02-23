@@ -30,4 +30,4 @@ Y para hacer referecia desde el archivo markdown a la imagen utiliza la siguient
 
 `![Nombre Imágen](/assets/machines/[NOMBRE_MAQUINA].htb/images/[FILENAME])`
 
-Tengo preparado un script automatizado para generar walkthroughs a partir de .md de Obsidian, revisar el directorio [parsing](./parsing/README.md)
+Tengo preparado un script automatizado para generar walkthroughs a partir de .md de Obsidian, revisar el directorio [parsing](./parsing/)

@@ -1,4 +1,9 @@
-El script .py se debe utilizar en el caso de que se tenga un archivo .md que tenga imagenes .png y se desee cambiar el formato a .webp. Para no hacerlo manualmente, el ir cambiando a webp y además cambiar las referencias desde el .md, utilizar este script.
+El script `from_obisidian_to_repo.py`:
+
+* Toma las imágenes y crea unas nuevas modificando el formato a webp.
+* Crea un archivo markdown nuevo tomando como base el antiguo.
+* Modifica las refencias de las imágenes al nuevo formato.
+* Organiza las carpetas para su fácil movilización.
 
 ### Requisitos
 
@@ -28,7 +33,7 @@ python from_obisidian_to_repo.py
 ¿Qué máquina de Hack The Box quieres documentar?: Planning
 ```
 
-El script buscará la carpeta `Planning` y realizará el parsing creando lo siguiente:
+El script buscará la carpeta `Planning` dentro del directorio `parsing` y realizará el parsing creando lo siguiente:
 
 ```
 └── output_copy
