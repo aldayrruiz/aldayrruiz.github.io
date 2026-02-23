@@ -39,7 +39,7 @@ Nmap done: 1 IP address (1 host up) scanned in 26.02 seconds
 
 La web parece ser unos laboratorios de HackTheBox.
 
-![](/assets/machines/twomillion.htb/images/777e1569-d728-4bec-9e70-355a8adb4822.webp)
+![Image](/assets/machines/twomillion.htb/images/777e1569-d728-4bec-9e70-355a8adb4822.webp)
 
 Clicar en "Join HTB".
 
@@ -132,7 +132,7 @@ Ahora vamos a testear el otro endpoint `/api/v1/admin/vpn/generate`, para genera
 Al introducir nuestro `username` se ejecuta de forma normal. Si enviamos una prueba de OS Command Injection:
 * `;echo xsmaky`
 
-![](/assets/machines/twomillion.htb/images/f65c28d4-4e43-4524-aada-5eeb4074d10b.webp)
+![Image](/assets/machines/twomillion.htb/images/f65c28d4-4e43-4524-aada-5eeb4074d10b.webp)
 
 Se concatena `.openvpn` a nuestro `echo`. Eso quiere decir que ha funcionado, el comando estará generando un `.openvpn` tal que `... -o $INPUT`.
 

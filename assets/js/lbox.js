@@ -1,23 +1,45 @@
-const lightbox = document.createElement("div");
-lightbox.id = "lightbox";
-document.body.appendChild(lightbox);
-
 const images = document.querySelectorAll(".article .content img");
-images.forEach((image) => {
-  image.addEventListener("click", (e) => {
-    lightbox.classList.add("active");
-    const img = document.createElement("img");
-    img.src = image.src;
-    while (lightbox.firstChild) {
-      lightbox.removeChild(lightbox.firstChild);
-    }
-    img.style.setProperty("cursor", "not-allowed");
-    lightbox.appendChild(img);
-    lightbox.style.setProperty("cursor", "zoom-out");
+
+// Crear overlay global
+const overlay = document.createElement("div");
+overlay.style.position = "fixed";
+overlay.style.inset = "0";
+overlay.style.background = "rgba(0,0,0,0.5)";
+overlay.style.backdropFilter = "blur(6px)";
+overlay.style.display = "flex";
+overlay.style.justifyContent = "center";
+overlay.style.alignItems = "center";
+overlay.style.visibility = "hidden";
+overlay.style.opacity = "0";
+overlay.style.transition = "opacity .3s ease";
+overlay.style.zIndex = "9999";
+
+// Imagen ampliada
+const bigImg = document.createElement("img");
+bigImg.style.maxWidth = "80%";
+bigImg.style.maxHeight = "80%";
+bigImg.style.border = "6px solid #2563eb";
+bigImg.style.borderRadius = "8px";
+bigImg.style.boxShadow = "0 0 25px rgba(0,0,0,0.8)";
+bigImg.style.pointerEvents = "none"; // evita cerrar al clicar en la imagen
+
+overlay.appendChild(bigImg);
+document.body.appendChild(overlay);
+
+// Abrir imagen en foco
+images.forEach(img => {
+  img.style.cursor = "pointer";
+  img.addEventListener("click", () => {
+    bigImg.src = img.src;
+    overlay.style.visibility = "visible";
+    overlay.style.opacity = "1";
   });
 });
 
-lightbox.addEventListener("click", (e) => {
-  if (e.target !== e.currentTarget) return;
-  lightbox.classList.remove("active");
+// Cerrar al clicar fuera
+overlay.addEventListener("click", () => {
+  overlay.style.opacity = "0";
+  setTimeout(() => {
+    overlay.style.visibility = "hidden";
+  }, 300);
 });
