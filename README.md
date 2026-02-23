@@ -2,18 +2,21 @@
 
 Este repositorio esta usando Github Pages.
 
-## Development
+## ¿Clone/Fork?
 
-Para intalar las dependencias del proyecto ejecutar.
+Seguir las instrucciones de instalación de Ruby, Gem y Jekyll.
+
+* https://jekyllrb.com/docs/installation/ubuntu/
+
+Para instalar las dependencias.
 
 ```bash
-gem install
+bundle install
 ```
 
-Para lanzar el proyecto en local, se necesita:
+Para lanzar el proyecto en local.
 
 ```bash
-gem install bundler jekyll
 bundle exec jekyll serve
 ```
 
@@ -26,3 +29,5 @@ Si el .markdown esta usando imagenes, estas imagenes debes colocarlas bajo, la c
 Y para hacer referecia desde el archivo markdown a la imagen utiliza la siguiente ruta
 
 `![Nombre Imágen](/assets/machines/[NOMBRE_MAQUINA].htb/images/[FILENAME])`
+
+Tengo preparado un script automatizado para generar walkthroughs a partir de .md de Obsidian, revisar el directorio [parsing](./parsing/README.md)
