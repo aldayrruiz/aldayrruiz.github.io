@@ -39,6 +39,9 @@ header {
   box-shadow: var(--shadow);
   padding: 2rem;
   border: 1px solid var(--border-card);
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .article-header {
@@ -133,10 +136,12 @@ header {
   margin-bottom: 1.75rem;
 }
 .content table {
+  display: block;
   width: 100%;
   max-width: 100%;
   margin: 1rem 0;
   border-collapse: collapse;
+  overflow-x: auto;
 }
 .content table th {
   background-color: var(--bg-card);
@@ -169,15 +174,26 @@ header {
 
 .content code {
   color: var(--accent-blue);
-  font-size: 1rem;
   font-family: "JetBrains Mono", monospace;
 }
 
 @media screen and (max-width: 750px) {
-  body {
-    padding: 1.5rem;
-  }
   .article {
     padding: 1rem;
+  }
+  .article-title {
+    font-size: 1.5rem;
+  }
+  .content pre {
+    padding: 0.75rem 1rem;
+  }
+  .content h1 {
+    font-size: 1.5rem;
+  }
+  .content h2 {
+    font-size: 1.3rem;
+  }
+  .content h3 {
+    font-size: 1.15rem;
   }
 }

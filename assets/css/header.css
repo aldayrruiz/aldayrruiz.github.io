@@ -6,6 +6,7 @@ header {
   justify-content: space-between;
   gap: 1rem;
   background: transparent;
+  flex-wrap: wrap;
 }
 header .site-title {
   font-size: 3rem;
@@ -17,7 +18,16 @@ header .site-title {
   font-family: "JetBrains Mono", monospace;
 }
 @media screen and (max-width: 750px) {
+  header {
+    padding: 1.5rem 0 2.5rem 0;
+  }
   header .site-title {
     font-size: 2rem;
+  }
+}
+@media screen and (max-width: 480px) {
+  header .site-title {
+    font-size: 1.5rem;
+    letter-spacing: -1px;
   }
 }
